@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  spark-master:
+    image: bitnami/spark:3.3.2
+    environment:
+      - SPARK_MODE=master
+    ports:
+      - "7077:7077"
+      - "8080:8080"
+
+  spark-worker:
+    image: bitnami/spark:3.3.2
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+    depends_on:
+      - spark-master
+    ports:
+      - "8081:8081"
+
+  pyspark-app:
+    build: .
+    container_name: pyspark-aws-docker-pyspark-app
+    environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
+    volumes:
+      - /g/Pyspark-aws-docker:/app
+    depends_on:
+      - spark-master
+      - spark-worker
